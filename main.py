@@ -70,10 +70,25 @@ def select_item(items: List):
             print("Invalid input. Please enter a number.")
 
 
+def dump_table(table: Table):
+    """Print the entire table."""
+    print(f"\nTable: {table.name}")
+    headers_str = " | ".join(table.headers)
+    print(headers_str)
+    print("-" * len(headers_str))
+
+    for row in table.rows:
+        r_start = row.range_start
+        r_end = row.range_end
+        range_disp = f"{r_start}" if r_start == r_end else f"{r_start}-{r_end}"
+        full_row = [range_disp] + row.content
+        print(" | ".join(full_row))
+
+
 def query_table(table: Table):
     """Loop to query the selected table."""
     print(f"\nUsing Table: {table.name}")
-    print("Type 'b' to go back, 'q' to quit.")
+    print("Type 'd' to dump table, 'b' to go back, 'q' to quit.")
 
     while True:
         min_val, max_val = table.get_range_bounds()
@@ -86,6 +101,9 @@ def query_table(table: Table):
             sys.exit(0)
         if user_input.lower() == 'b':
             return
+        if user_input.lower() == 'd':
+            dump_table(table)
+            continue
 
         try:
             value = int(user_input)
