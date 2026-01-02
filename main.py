@@ -21,28 +21,45 @@ import os
 from typing import List
 
 from loaders import CSVTableLoader
-from models import Table
+from models import Table, TableDirectory
 from logger import g_logger
 
-def list_tables(tables: List[Table]):
-    """Display a list of loaded tables."""
-    print("\n--- Loaded Tables ---")
-    for i, table in enumerate(tables):
-        print(f"{i + 1}. {table.name} (Rows: {len(table.rows)})")
+def browse_directory(current_dir: TableDirectory):
+    """Display contents of the current directory."""
+    print(f"\n--- {current_dir.name} ---")
+    
+    items = []
+    
+    # Add '..' if we are not at root
+    if current_dir.parent:
+        items.append(("..", current_dir.parent))
+    
+    # List subdirectories
+    for subdir_name in sorted(current_dir.subdirs.keys()):
+        items.append((f"[DIR] {subdir_name}", current_dir.subdirs[subdir_name]))
+        
+    # List tables
+    for table in current_dir.tables:
+        items.append((table.name, table))
+        
+    for i, (name, _) in enumerate(items):
+        print(f"{i + 1}. {name}")
+        
     print("---------------------")
+    return items
 
-def select_table(tables: List[Table]) -> Table:
-    """Prompt user to select a table."""
+def select_item(items: List):
+    """Prompt user to select an item."""
     while True:
         try:
-            choice = input("\nSelect a table (number) or 'q' to quit: ").strip()
+            choice = input("\nSelect an item (number) or 'q' to quit: ").strip()
             if choice.lower() == 'q':
                 print("Exiting.")
                 sys.exit(0)
             
             idx = int(choice) - 1
-            if 0 <= idx < len(tables):
-                return tables[idx]
+            if 0 <= idx < len(items):
+                return items[idx][1]
             else:
                 print("Invalid selection. Please try again.")
         except ValueError:
@@ -145,17 +162,23 @@ def main():
 
     if path:
         g_logger.info(f"Loading tables from {path}...")
-        tables = loader.load(path)
+        root_dir = loader.load(path)
     
-    if not tables:
+    if not root_dir:
         print("No tables loaded. Exiting.")
         g_logger.warning("No tables loaded.")
         return
 
+    current_dir = root_dir
+
     while True:
-        list_tables(tables)
-        selected_table = select_table(tables)
-        query_table(selected_table)
+        items = browse_directory(current_dir)
+        selected = select_item(items)
+        
+        if isinstance(selected, TableDirectory):
+            current_dir = selected
+        elif isinstance(selected, Table):
+            query_table(selected)
 
 if __name__ == "__main__":
     main()

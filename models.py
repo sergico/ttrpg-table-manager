@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from dataclasses import dataclass
-from typing import List, Any, Optional
+from dataclasses import dataclass, field
+from typing import List, Any, Optional, Dict
 
 @dataclass
 class TableRow:
@@ -53,3 +53,19 @@ class Table:
 
     def __repr__(self):
         return f"<Table name='{self.name}' rows={len(self.rows)}>"
+
+@dataclass
+class TableDirectory:
+    """Represents a directory containing tables and subdirectories."""
+    name: str
+    tables: List[Table] = field(default_factory=list)
+    subdirs: Dict[str, 'TableDirectory'] = field(default_factory=dict)
+    parent: Optional['TableDirectory'] = None
+
+    def add_table(self, table: Table):
+        self.tables.append(table)
+
+    def add_subdir(self, subdir: 'TableDirectory'):
+        self.subdirs[subdir.name] = subdir
+        subdir.parent = self
+

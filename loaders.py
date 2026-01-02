@@ -20,40 +20,53 @@ from typing import List, Dict, Any
 import csv
 import os
 import glob
-from models import Table, TableRow
+from models import Table, TableRow, TableDirectory
 from logger import g_logger
 
 class TableLoader(ABC):
     """Abstract base class for table loaders."""
     
     @abstractmethod
-    def load(self, source: str) -> List[Table]:
+    def load(self, source: str) -> TableDirectory:
         """Load tables from a source (file or directory)."""
         pass
 
 class CSVTableLoader(TableLoader):
     """Loads tables from CSV files."""
 
-    def load(self, source: str) -> List[Table]:
-        tables = []
-        if os.path.isdir(source):
-            # Load all .csv files in the directory recursively
-            files = glob.glob(os.path.join(source, "**/*.csv"), recursive=True)
-            for f in files:
-                try:
-                    table = self._load_file(f)
-                    tables.append(table)
-                except Exception as e:
-                    g_logger.error(f"Failed to load table from {f}: {e}")
-        elif os.path.isfile(source):
+    def load(self, source: str) -> TableDirectory:
+        root_name = os.path.basename(os.path.abspath(source))
+        root_dir = TableDirectory(name=root_name)
+
+        if os.path.isfile(source):
             try:
-                tables.append(self._load_file(source))
+                table = self._load_file(source)
+                root_dir.add_table(table)
             except Exception as e:
                 g_logger.error(f"Failed to load table from {source}: {e}")
+        elif os.path.isdir(source):
+            self._load_recursive(source, root_dir)
         else:
             g_logger.error(f"Source not found: {source}")
         
-        return tables
+        return root_dir
+
+    def _load_recursive(self, current_path: str, current_dir: TableDirectory):
+        # Load files in current directory
+        for item in os.listdir(current_path):
+            full_path = os.path.join(current_path, item)
+            if os.path.isfile(full_path) and item.endswith('.csv'):
+                try:
+                    table = self._load_file(full_path)
+                    current_dir.add_table(table)
+                except Exception as e:
+                    g_logger.error(f"Failed to load table from {full_path}: {e}")
+            elif os.path.isdir(full_path):
+                # Create subdirectory node
+                subdir = TableDirectory(name=item)
+                current_dir.add_subdir(subdir)
+                # Recurse
+                self._load_recursive(full_path, subdir)
 
     def _load_file(self, filepath: str) -> Table:
         filename = os.path.basename(filepath)
