@@ -32,11 +32,11 @@ def browse_directory(current_dir: TableDirectory):
     
     # Add '..' if we are not at root
     if current_dir.parent:
-        items.append(("..", current_dir.parent))
+        items.append(("[DIR ↑] ..", current_dir.parent))
     
     # List subdirectories
     for subdir_name in sorted(current_dir.subdirs.keys()):
-        items.append((f"[DIR] {subdir_name}", current_dir.subdirs[subdir_name]))
+        items.append((f"[DIR ↓] {subdir_name}", current_dir.subdirs[subdir_name]))
         
     # List tables
     for table in current_dir.tables:
