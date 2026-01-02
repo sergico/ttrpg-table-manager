@@ -1,0 +1,5 @@
+d10,Result,Description
+1,Critical Fail,"You trip and fall."
+2-5,Failure,"You missed."
+6-9,Success,"You hit!"
+10,Critical Success,"You hit with style!"
