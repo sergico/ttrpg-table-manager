@@ -40,7 +40,7 @@ def browse_directory(current_dir: TableDirectory):
         
     # List tables
     for table in current_dir.tables:
-        items.append((table.name, table))
+        items.append((f"[TABLE] {table.name}", table))
         
     for i, (name, _) in enumerate(items):
         print(f"{i + 1}. {name}")
