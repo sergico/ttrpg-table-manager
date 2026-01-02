@@ -85,10 +85,14 @@ def query_table(table: Table):
         except ValueError:
             print("Invalid input. Please enter an integer.")
 
-def main():
+def parse_cli_args():
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="TTRPG Table Manager")
     parser.add_argument("path", nargs='?', help="Path to a CSV file or folder containing CSV files.")
-    args = parser.parse_args()
+    return parser.parse_args()
+
+def main():
+    args = parse_cli_args()
 
     print("Welcome to TTRPG Table Manager")
     
