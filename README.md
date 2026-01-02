@@ -15,6 +15,13 @@ I have implemented a command-line tool to manage and query TTRPG tables stored i
     2. Allows user to select a table.
     3. Accepts dice roll input to show corresponding result.
 
+## Testing
+To run the project's unit tests, execute the following command from the project root:
+
+```bash
+python3 -m unittest discover tests
+```
+
 ## Usage
 Run the tool by providing a path to a CSV file or a directory containing CSV files using the `-p` or `--path` flag:
 
