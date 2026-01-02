@@ -19,7 +19,7 @@ I have implemented a command-line tool to manage and query TTRPG tables stored i
 To run the project's unit tests, execute the following command from the project root:
 
 ```bash
-python3 -m unittest discover tests
+python3 -m unittest discover unit_test
 ```
 
 ## Usage
