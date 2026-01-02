@@ -16,7 +16,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from dataclasses import dataclass, field
-from typing import List, Any, Optional, Dict
+from typing import List, Optional, Dict
+
 
 @dataclass
 class TableRow:
@@ -28,6 +29,7 @@ class TableRow:
     def matches(self, value: int) -> bool:
         """Check if the value falls within the row's range."""
         return self.range_start <= value <= self.range_end
+
 
 class Table:
     """Represents a TTRPG table."""
@@ -54,6 +56,7 @@ class Table:
     def __repr__(self):
         return f"<Table name='{self.name}' rows={len(self.rows)}>"
 
+
 @dataclass
 class TableDirectory:
     """Represents a directory containing tables and subdirectories."""
@@ -68,4 +71,3 @@ class TableDirectory:
     def add_subdir(self, subdir: 'TableDirectory'):
         self.subdirs[subdir.name] = subdir
         subdir.parent = self
-

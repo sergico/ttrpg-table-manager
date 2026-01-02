@@ -53,5 +53,5 @@ def setup_logging(log_file="ttrp.table.mng.log", verbose=False):
 
     return logger
 
-g_logger = setup_logging(log_file='ttrpg.table.logger.log', verbose=True)
 
+g_logger = setup_logging(log_file='ttrpg.table.logger.log', verbose=True)
