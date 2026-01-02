@@ -37,7 +37,8 @@ def query_table(table: Table):
     print("Type 'b' to go back, 'q' to quit.")
     
     while True:
-        user_input = input(f"\n[{table.name}] Enter dice roll value: ").strip()
+        min_val, max_val = table.get_range_bounds()
+        user_input = input(f"\n[{table.name}] Enter dice roll value ({min_val}-{max_val}): ").strip()
         
         if user_input.lower() == 'q':
             print("Exiting.")
@@ -88,12 +89,30 @@ def query_table(table: Table):
 def parse_cli_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="TTRPG Table Manager")
-    parser.add_argument("path", nargs='?', help="Path to a CSV file or folder containing CSV files.")
+    parser.add_argument("-p", "--path", help="Path to a CSV file or folder containing CSV files.")
+    parser.add_argument("-l", "--logo", help="Path to a custom ASCII logo file.", default=None)
     return parser.parse_args()
+
+def print_logo(logo_path: str = None):
+    """Print the ASCII logo."""
+    if logo_path is None:
+        # Default to resources/logo.ascii.txt relative to this script
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        logo_path = os.path.join(base_dir, 'resources', 'logo.ascii.txt')
+    
+    if os.path.exists(logo_path):
+        try:
+            with open(logo_path, 'r', encoding='utf-8') as f:
+                print(f.read())
+        except Exception as e:
+            g_logger.warning(f"Failed to load logo from {logo_path}: {e}")
+    else:
+        g_logger.warning(f"Logo file not found: {logo_path}")
 
 def main():
     args = parse_cli_args()
 
+    print_logo(args.logo)
     print("Welcome to TTRPG Table Manager")
     
     path = args.path

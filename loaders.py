@@ -20,8 +20,8 @@ class CSVTableLoader(TableLoader):
     def load(self, source: str) -> List[Table]:
         tables = []
         if os.path.isdir(source):
-            # Load all .csv files in the directory
-            files = glob.glob(os.path.join(source, "*.csv"))
+            # Load all .csv files in the directory recursively
+            files = glob.glob(os.path.join(source, "**/*.csv"), recursive=True)
             for f in files:
                 try:
                     table = self._load_file(f)

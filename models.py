@@ -26,5 +26,13 @@ class Table:
                 return row
         return None
 
+    def get_range_bounds(self) -> tuple[int, int]:
+        """Return the minimum and maximum values covered by the table."""
+        if not self.rows:
+            return 0, 0
+        min_val = min(row.range_start for row in self.rows)
+        max_val = max(row.range_end for row in self.rows)
+        return min_val, max_val
+
     def __repr__(self):
         return f"<Table name='{self.name}' rows={len(self.rows)}>"

@@ -16,10 +16,16 @@ I have implemented a command-line tool to manage and query TTRPG tables stored i
     3. Accepts dice roll input to show corresponding result.
 
 ## Usage
-Run the tool by providing a path to a CSV file or a directory containing CSV files:
+Run the tool by providing a path to a CSV file or a directory containing CSV files using the `-p` or `--path` flag:
 
 ```bash
-python3 main.py test_tables/
+python3 main.py -p test_tables/
+```
+
+You can also specify a custom ASCII logo using the `-l` or `--logo` flag:
+
+```bash
+python3 main.py -p test_tables/ -l my_logo.txt
 ```
 
 Or run without arguments to be prompted for a path:
