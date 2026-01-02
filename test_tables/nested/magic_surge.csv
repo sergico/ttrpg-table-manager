@@ -1,0 +1,5 @@
+d20,Effect,Description
+1,Caster explodes,"You disappear in a cloud of smoke."
+2-10,Nothing happens,"The spell fizzles."
+11-19,Spell cast normally,"The spell works as intended."
+20,Double effect,"The spell is twice as powerful!"
