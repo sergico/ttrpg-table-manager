@@ -79,7 +79,7 @@ def main():
 
     # Start TUI
     try:
-        curses.wrapper(run_tui, root_dir)
+        curses.wrapper(run_tui, root_dir, args.logo)
     except Exception as e:
         # If terminal is too small or other curses error
         print(f"TUI Error: {e}")

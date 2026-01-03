@@ -189,7 +189,22 @@ def query_table_view(stdscr, table: Table):
     curses.noecho()
 
 
-def run_tui(stdscr, root_dir: TableDirectory):
+def load_logo_lines(logo_path: str = None) -> List[str]:
+    """Load logo lines from file."""
+    if logo_path is None:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        logo_path = os.path.join(base_dir, 'resources', 'logo.ascii.txt')
+    
+    if os.path.exists(logo_path):
+        try:
+            with open(logo_path, 'r', encoding='utf-8') as f:
+                return f.read().splitlines()
+        except Exception as e:
+            g_logger.warning(f"Failed to load logo from {logo_path}: {e}")
+    return []
+
+
+def run_tui(stdscr, root_dir: TableDirectory, logo_path: str = None):
     """Main TUI Entry point."""
     # Settings
     curses.curs_set(0) # Hide cursor
@@ -200,10 +215,12 @@ def run_tui(stdscr, root_dir: TableDirectory):
         curses.start_color()
         curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK) # Directories
         curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK) # Tables
+        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK) # Logo
         
     current_dir = root_dir
     selected_idx = 0
     path_stack = [root_dir.name]
+    logo_lines = load_logo_lines(logo_path)
     
     while True:
         stdscr.clear()
@@ -218,17 +235,32 @@ def run_tui(stdscr, root_dir: TableDirectory):
         if selected_idx < 0:
             selected_idx = 0
             
+        # Draw Logo
+        logo_y = 0
+        if logo_lines:
+            for line in logo_lines[:min(len(logo_lines), height // 3)]:
+                try:
+                    attr = curses.A_BOLD
+                    if curses.has_colors():
+                        attr = curses.color_pair(3) | curses.A_BOLD
+                    stdscr.addstr(logo_y, 0, line[:width-1], attr)
+                except curses.error:
+                    pass
+                logo_y += 1
+            logo_y += 1  # Extra spacing
+        
         # Draw Header
         header = f"Browsing: {'/'.join(path_stack)}"
-        stdscr.addstr(0, 0, header, curses.A_BOLD)
+        stdscr.addstr(logo_y, 0, header, curses.A_BOLD)
+        logo_y += 1
         
         # Draw List
-        max_display_items = height - 3 # -1 header, -1 status bar, -1 padding
+        max_display_items = height - logo_y - 2  # Adjust for logo, header, and status bar
         start_idx = 0
         if selected_idx >= max_display_items:
             start_idx = selected_idx - max_display_items + 1
             
-        list_y = 1
+        list_y = logo_y
         for i in range(start_idx, min(len(items), start_idx + max_display_items)):
             name, type_, obj = items[i]
             
