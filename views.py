@@ -11,10 +11,84 @@ __status__      = "Development"
 
 import sys
 import os
+import json
 import curses
-from typing import List, Tuple, Any, Optional
+from typing import List, Tuple, Any, Optional, Dict
 from models import Table, TableDirectory
 from logger import g_logger
+
+
+# Curses color mapping
+COLOR_MAP = {
+    'black': curses.COLOR_BLACK,
+    'red': curses.COLOR_RED,
+    'green': curses.COLOR_GREEN,
+    'yellow': curses.COLOR_YELLOW,
+    'blue': curses.COLOR_BLUE,
+    'magenta': curses.COLOR_MAGENTA,
+    'cyan': curses.COLOR_CYAN,
+    'white': curses.COLOR_WHITE
+}
+
+
+def load_theme(theme_path: str = None) -> Dict:
+    """Load theme configuration from JSON file."""
+    if theme_path is None:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        theme_path = os.path.join(base_dir, 'resources', 'theme.json')
+    
+    # Default theme if file not found
+    default_theme = {
+        "name": "Default Dark",
+        "colors": {
+            "directory": {"foreground": "cyan", "background": "black"},
+            "table": {"foreground": "green", "background": "black"},
+            "logo": {"foreground": "yellow", "background": "black"},
+            "status_bar": {"foreground": "white", "background": "blue"},
+            "selected": {"foreground": "black", "background": "white"},
+            "header": {"foreground": "white", "background": "black"}
+        }
+    }
+    
+    if os.path.exists(theme_path):
+        try:
+            with open(theme_path, 'r', encoding='utf-8') as f:
+                theme = json.load(f)
+                g_logger.info(f"Loaded theme: {theme.get('name', 'Unknown')}")
+                return theme
+        except Exception as e:
+            g_logger.warning(f"Failed to load theme from {theme_path}: {e}")
+    
+    return default_theme
+
+
+def init_color_pairs(theme: Dict):
+    """Initialize curses color pairs from theme."""
+    if not curses.has_colors():
+        return
+    
+    curses.start_color()
+    colors = theme.get('colors', {})
+    
+    # Pair 1: Directories
+    dir_fg = COLOR_MAP.get(colors.get('directory', {}).get('foreground', 'cyan'), curses.COLOR_CYAN)
+    dir_bg = COLOR_MAP.get(colors.get('directory', {}).get('background', 'black'), curses.COLOR_BLACK)
+    curses.init_pair(1, dir_fg, dir_bg)
+    
+    # Pair 2: Tables
+    tbl_fg = COLOR_MAP.get(colors.get('table', {}).get('foreground', 'green'), curses.COLOR_GREEN)
+    tbl_bg = COLOR_MAP.get(colors.get('table', {}).get('background', 'black'), curses.COLOR_BLACK)
+    curses.init_pair(2, tbl_fg, tbl_bg)
+    
+    # Pair 3: Logo
+    logo_fg = COLOR_MAP.get(colors.get('logo', {}).get('foreground', 'yellow'), curses.COLOR_YELLOW)
+    logo_bg = COLOR_MAP.get(colors.get('logo', {}).get('background', 'black'), curses.COLOR_BLACK)
+    curses.init_pair(3, logo_fg, logo_bg)
+    
+    # Pair 4: Status bar
+    status_fg = COLOR_MAP.get(colors.get('status_bar', {}).get('foreground', 'white'), curses.COLOR_WHITE)
+    status_bg = COLOR_MAP.get(colors.get('status_bar', {}).get('background', 'blue'), curses.COLOR_BLUE)
+    curses.init_pair(4, status_fg, status_bg)
 
 
 def print_logo(logo_path: str = None):
@@ -34,7 +108,7 @@ def print_logo(logo_path: str = None):
         g_logger.warning(f"Logo file not found: {logo_path}")
 
 
-def draw_status_bar(stdscr, path_str: str, table_name: str, width: int):
+def draw_status_bar(stdscr, path_str: str, table_name: str, width: int, use_colors: bool = True):
     """Draw the status bar at the bottom of the screen."""
     height, _ = stdscr.getmaxyx()
     status_y = height - 1
@@ -75,9 +149,14 @@ def draw_status_bar(stdscr, path_str: str, table_name: str, width: int):
         status_line += " " * (width - len(status_line) - 1)
         
     try:
-        stdscr.attron(curses.A_REVERSE)
-        stdscr.addstr(status_y, 0, status_line[:width-1])
-        stdscr.attroff(curses.A_REVERSE)
+        if use_colors and curses.has_colors():
+            stdscr.attron(curses.color_pair(4))
+            stdscr.addstr(status_y, 0, status_line[:width-1])
+            stdscr.attroff(curses.color_pair(4))
+        else:
+            stdscr.attron(curses.A_REVERSE)
+            stdscr.addstr(status_y, 0, status_line[:width-1])
+            stdscr.attroff(curses.A_REVERSE)
     except curses.error:
         pass
 
@@ -210,12 +289,10 @@ def run_tui(stdscr, root_dir: TableDirectory, logo_path: str = None):
     curses.curs_set(0) # Hide cursor
     stdscr.keypad(True) # Enable special keys
     
-    # Colors if supported
-    if curses.has_colors():
-        curses.start_color()
-        curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK) # Directories
-        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK) # Tables
-        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK) # Logo
+    # Load and apply theme
+    theme = load_theme()
+    init_color_pairs(theme)
+    use_colors = curses.has_colors()
         
     current_dir = root_dir
     selected_idx = 0
@@ -290,7 +367,7 @@ def run_tui(stdscr, root_dir: TableDirectory, logo_path: str = None):
         if items:
             selected_obj_name = items[selected_idx][0]
             
-        draw_status_bar(stdscr, "/".join(path_stack), selected_obj_name, width)
+        draw_status_bar(stdscr, "/".join(path_stack), selected_obj_name, width, use_colors)
         
         stdscr.refresh()
         

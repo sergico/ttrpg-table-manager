@@ -1,0 +1,30 @@
+{
+    "name": "Light Theme",
+    "description": "Light color scheme for TUI",
+    "colors": {
+        "directory": {
+            "foreground": "blue",
+            "background": "white"
+        },
+        "table": {
+            "foreground": "green",
+            "background": "white"
+        },
+        "logo": {
+            "foreground": "magenta",
+            "background": "white"
+        },
+        "status_bar": {
+            "foreground": "white",
+            "background": "blue"
+        },
+        "selected": {
+            "foreground": "white",
+            "background": "black"
+        },
+        "header": {
+            "foreground": "black",
+            "background": "white"
+        }
+    }
+}

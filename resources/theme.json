@@ -1,0 +1,30 @@
+{
+  "name": "Dark Theme",
+  "description": "Default dark color scheme for TUI",
+  "colors": {
+    "directory": {
+      "foreground": "cyan",
+      "background": "black"
+    },
+    "table": {
+      "foreground": "green",
+      "background": "black"
+    },
+    "logo": {
+      "foreground": "yellow",
+      "background": "black"
+    },
+    "status_bar": {
+      "foreground": "white",
+      "background": "blue"
+    },
+    "selected": {
+      "foreground": "black",
+      "background": "white"
+    },
+    "header": {
+      "foreground": "white",
+      "background": "black"
+    }
+  }
+}
