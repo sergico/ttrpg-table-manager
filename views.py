@@ -1,0 +1,138 @@
+
+"""views.py: Manages the CLI views and user interaction."""
+
+__author__      = "Sergio Borghese"
+__copyright__   = "Copyright 2026, "
+__credits__     = []
+__license__     = "GPLv3"
+__version__		= "1.0.0"
+__email__       = "s.borghese@netresults.it"
+__status__      = "Development"
+
+import sys
+import os
+from typing import List
+from models import Table, TableDirectory
+from logger import g_logger
+
+
+def browse_directory(current_dir: TableDirectory):
+    """Display contents of the current directory."""
+    print(f"\n--- {current_dir.name} ---")
+
+    items = []
+
+    # Add '..' if we are not at root
+    if current_dir.parent:
+        items.append(("[DIR ↑] ..", current_dir.parent))
+
+    # List subdirectories
+    for subdir_name in sorted(current_dir.subdirs.keys()):
+        items.append(
+            (f"[DIR ↓] {subdir_name}", current_dir.subdirs[subdir_name])
+        )
+
+    # List tables
+    for table in current_dir.tables:
+        items.append((f"[TABLE] {table.name}", table))
+
+    for i, (name, _) in enumerate(items):
+        print(f"{i + 1}. {name}")
+
+    print("---------------------")
+    return items
+
+
+def print_logo(logo_path: str = None):
+    """Print the ASCII logo."""
+    if logo_path is None:
+        # Default to resources/logo.ascii.txt relative to this script
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        logo_path = os.path.join(base_dir, 'resources', 'logo.ascii.txt')
+
+    if os.path.exists(logo_path):
+        try:
+            with open(logo_path, 'r', encoding='utf-8') as f:
+                print(f.read())
+        except Exception as e:
+            g_logger.warning(f"Failed to load logo from {logo_path}: {e}")
+    else:
+        g_logger.warning(f"Logo file not found: {logo_path}")
+
+
+def select_item(items: List):
+    """Prompt user to select an item."""
+    while True:
+        try:
+            choice = input("\nSelect an item (number) or 'q' to quit: ").strip()
+            if choice.lower() == 'q':
+                print("Exiting.")
+                sys.exit(0)
+
+            idx = int(choice) - 1
+            if 0 <= idx < len(items):
+                return items[idx][1]
+            else:
+                print("Invalid selection. Please try again.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+
+def dump_table(table: Table):
+    """Print the entire table."""
+    print(f"\nTable: {table.name}")
+    headers_str = " | ".join(table.headers)
+    print(headers_str)
+    print("-" * len(headers_str))
+
+    for row in table.rows:
+        r_start = row.range_start
+        r_end = row.range_end
+        range_disp = f"{r_start}" if r_start == r_end else f"{r_start}-{r_end}"
+        full_row = [range_disp] + row.content
+        print(" | ".join(full_row))
+
+
+def query_table(table: Table):
+    """Loop to query the selected table."""
+    print(f"\nUsing Table: {table.name}")
+    print("Type 'd' to dump table, 'b' to go back, 'q' to quit.")
+
+    while True:
+        min_val, max_val = table.get_range_bounds()
+        user_input = input(
+            f"\n[{table.name}] Enter dice roll value ({min_val}-{max_val}): "
+        ).strip()
+
+        if user_input.lower() == 'q':
+            print("Exiting.")
+            sys.exit(0)
+        if user_input.lower() == 'b':
+            return
+        if user_input.lower() == 'd':
+            dump_table(table)
+            continue
+
+        try:
+            value = int(user_input)
+            row = table.query(value)
+
+            if row:
+                print("\nResult:")
+                # Print headers and content aligned
+                headers_str = " | ".join(table.headers)
+                print(headers_str)
+                print("-" * len(headers_str))
+
+                r_start = row.range_start
+                r_end = row.range_end
+                range_disp = f"{r_start}" if r_start == r_end else f"{r_start}-{r_end}"
+                full_row = [range_disp] + row.content
+
+                # Simple tab/pipe separation
+                print(" | ".join(full_row))
+
+            else:
+                print("No match found for that value.")
+        except ValueError:
+            print("Invalid input. Please enter an integer.")

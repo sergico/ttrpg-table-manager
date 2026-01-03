@@ -23,7 +23,8 @@ import sys
 
 # Add parent directory to path to import modules
 sys.path.append('..')
-from main import browse_directory, dump_table, parse_cli_args, print_logo
+from main import parse_cli_args
+from views import browse_directory, dump_table, print_logo
 from models import TableDirectory, Table, TableRow
 
 
