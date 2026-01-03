@@ -63,21 +63,22 @@ def load_theme(theme_path: str = None) -> Dict:
     return default_theme
 
 
-def init_color_pairs(theme: Dict):
+def init_color_pairs(theme: Dict, stdscr=None):
     """Initialize curses color pairs from theme."""
     if not curses.has_colors():
         return
     
     curses.start_color()
     
-    # Set background color if specified
-    bg_color_name = theme.get('background', 'black')
-    bg_color = COLOR_MAP.get(bg_color_name, curses.COLOR_BLACK)
-    
-    # Use default background if supported
-    if curses.can_change_color():
+    # Set background color if specified and stdscr is provided
+    if stdscr:
+        bg_color_name = theme.get('background', 'black')
+        bg_color = COLOR_MAP.get(bg_color_name, curses.COLOR_BLACK)
+        
+        # Create a color pair for background (pair 0 is reserved, use pair 5)
         try:
-            curses.assume_default_colors(-1, bg_color)
+            curses.init_pair(5, curses.COLOR_WHITE, bg_color)
+            stdscr.bkgd(' ', curses.color_pair(5))
         except:
             pass
     
@@ -304,7 +305,7 @@ def run_tui(stdscr, root_dir: TableDirectory, logo_path: str = None, theme_path:
     
     # Load and apply theme
     theme = load_theme(theme_path)
-    init_color_pairs(theme)
+    init_color_pairs(theme, stdscr)
     use_colors = curses.has_colors()
         
     current_dir = root_dir
