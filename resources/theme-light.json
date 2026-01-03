@@ -1,6 +1,7 @@
 {
     "name": "Light Theme",
     "description": "Light color scheme for TUI",
+    "background": "white",
     "colors": {
         "directory": {
             "foreground": "blue",

@@ -40,6 +40,7 @@ def load_theme(theme_path: str = None) -> Dict:
     # Default theme if file not found
     default_theme = {
         "name": "Default Dark",
+        "background": "black",
         "colors": {
             "directory": {"foreground": "cyan", "background": "black"},
             "table": {"foreground": "green", "background": "black"},
@@ -68,6 +69,18 @@ def init_color_pairs(theme: Dict):
         return
     
     curses.start_color()
+    
+    # Set background color if specified
+    bg_color_name = theme.get('background', 'black')
+    bg_color = COLOR_MAP.get(bg_color_name, curses.COLOR_BLACK)
+    
+    # Use default background if supported
+    if curses.can_change_color():
+        try:
+            curses.assume_default_colors(-1, bg_color)
+        except:
+            pass
+    
     colors = theme.get('colors', {})
     
     # Pair 1: Directories
