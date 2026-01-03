@@ -34,6 +34,11 @@ def parse_cli_args():
         help="Path to a custom ASCII logo file.",
         default=None
     )
+    parser.add_argument(
+        "-t", "--theme",
+        help="Path to a custom theme JSON file.",
+        default=None
+    )
     return parser.parse_args()
 
 
@@ -79,7 +84,7 @@ def main():
 
     # Start TUI
     try:
-        curses.wrapper(run_tui, root_dir, args.logo)
+        curses.wrapper(run_tui, root_dir, args.logo, args.theme)
     except Exception as e:
         # If terminal is too small or other curses error
         print(f"TUI Error: {e}")

@@ -283,14 +283,14 @@ def load_logo_lines(logo_path: str = None) -> List[str]:
     return []
 
 
-def run_tui(stdscr, root_dir: TableDirectory, logo_path: str = None):
+def run_tui(stdscr, root_dir: TableDirectory, logo_path: str = None, theme_path: str = None):
     """Main TUI Entry point."""
     # Settings
     curses.curs_set(0) # Hide cursor
     stdscr.keypad(True) # Enable special keys
     
     # Load and apply theme
-    theme = load_theme()
+    theme = load_theme(theme_path)
     init_color_pairs(theme)
     use_colors = curses.has_colors()
         
