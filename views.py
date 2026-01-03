@@ -222,35 +222,85 @@ def format_table_row(cells: List[str], widths: List[int]) -> str:
 
 
 def dump_table_view(stdscr, table: Table):
-    """View to dump table content."""
-    stdscr.clear()
+    """View to dump table content with pagination."""
     height, width = stdscr.getmaxyx()
-    
-    title = f"Table Dump: {table.name}"
-    stdscr.addstr(0, 0, title, curses.A_BOLD)
     
     # Calculate column widths
     col_widths = calculate_column_widths(table)
     
-    # Format and display header
-    headers_str = format_table_row(table.headers, col_widths)
-    stdscr.addstr(2, 0, headers_str[:width-1], curses.A_UNDERLINE)
-    
-    row_idx = 3
+    # Prepare all rows
+    all_rows = []
     for row in table.rows:
-        if row_idx >= height - 2:
-            break
         r_start = row.range_start
         r_end = row.range_end
         range_disp = f"{r_start}" if r_start == r_end else f"{r_start}-{r_end}"
         full_row = [range_disp] + row.content
-        line_str = format_table_row(full_row, col_widths)
-        stdscr.addstr(row_idx, 0, line_str[:width-1])
-        row_idx += 1
+        all_rows.append(format_table_row(full_row, col_widths))
+    
+    # Calculate pagination
+    title_lines = 2  # Title + blank line
+    header_lines = 2  # Header + blank line
+    status_lines = 1
+    available_height = height - title_lines - header_lines - status_lines
+    
+    total_rows = len(all_rows)
+    current_page = 0
+    total_pages = (total_rows + available_height - 1) // available_height if available_height > 0 else 1
+    
+    while True:
+        stdscr.clear()
         
-    stdscr.addstr(height-1, 0, "Press any key to return...", curses.A_REVERSE)
-    stdscr.refresh()
-    stdscr.getch()
+        title = f"Table Dump: {table.name}"
+        stdscr.addstr(0, 0, title, curses.A_BOLD)
+        
+        # Format and display header
+        headers_str = format_table_row(table.headers, col_widths)
+        stdscr.addstr(2, 0, headers_str[:width-1], curses.A_UNDERLINE)
+        
+        # Display current page of rows
+        start_idx = current_page * available_height
+        end_idx = min(start_idx + available_height, total_rows)
+        
+        row_y = 3
+        for i in range(start_idx, end_idx):
+            if row_y >= height - 1:
+                break
+            stdscr.addstr(row_y, 0, all_rows[i][:width-1])
+            row_y += 1
+        
+        # Status bar
+        if total_pages > 1:
+            status = f"Page {current_page + 1}/{total_pages} | ↑/↓ or PgUp/PgDn: Navigate | q: Quit"
+        else:
+            status = "Press any key to return..."
+        
+        try:
+            stdscr.addstr(height-1, 0, status, curses.A_REVERSE)
+        except curses.error:
+            pass
+            
+        stdscr.refresh()
+        
+        # Handle input
+        key = stdscr.getch()
+        
+        if key == ord('q'):
+            break
+        elif total_pages > 1:
+            if key == curses.KEY_DOWN or key == ord(' ') or key == curses.KEY_NPAGE:
+                # Next page
+                if current_page < total_pages - 1:
+                    current_page += 1
+            elif key == curses.KEY_UP or key == curses.KEY_PPAGE:
+                # Previous page
+                if current_page > 0:
+                    current_page -= 1
+            else:
+                # Any other key exits if single page
+                break
+        else:
+            # Any key exits
+            break
 
 
 def query_table_view(stdscr, table: Table):
