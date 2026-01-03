@@ -191,6 +191,36 @@ def get_items_for_dir(current_dir: TableDirectory) -> List[Tuple[str, str, Any]]
     return items
 
 
+def calculate_column_widths(table: Table) -> List[int]:
+    """Calculate column widths for proper alignment."""
+    # Start with header widths
+    widths = [len(h) for h in table.headers]
+    
+    # Check all rows and update if needed
+    for row in table.rows:
+        r_start = row.range_start
+        r_end = row.range_end
+        range_disp = f"{r_start}" if r_start == r_end else f"{r_start}-{r_end}"
+        full_row = [range_disp] + row.content
+        
+        for i, cell in enumerate(full_row):
+            if i < len(widths):
+                widths[i] = max(widths[i], len(str(cell)))
+    
+    return widths
+
+
+def format_table_row(cells: List[str], widths: List[int]) -> str:
+    """Format a table row with proper column alignment."""
+    formatted = []
+    for i, cell in enumerate(cells):
+        if i < len(widths):
+            formatted.append(str(cell).ljust(widths[i]))
+        else:
+            formatted.append(str(cell))
+    return " | ".join(formatted)
+
+
 def dump_table_view(stdscr, table: Table):
     """View to dump table content."""
     stdscr.clear()
@@ -199,7 +229,11 @@ def dump_table_view(stdscr, table: Table):
     title = f"Table Dump: {table.name}"
     stdscr.addstr(0, 0, title, curses.A_BOLD)
     
-    headers_str = " | ".join(table.headers)
+    # Calculate column widths
+    col_widths = calculate_column_widths(table)
+    
+    # Format and display header
+    headers_str = format_table_row(table.headers, col_widths)
     stdscr.addstr(2, 0, headers_str[:width-1], curses.A_UNDERLINE)
     
     row_idx = 3
@@ -210,7 +244,7 @@ def dump_table_view(stdscr, table: Table):
         r_end = row.range_end
         range_disp = f"{r_start}" if r_start == r_end else f"{r_start}-{r_end}"
         full_row = [range_disp] + row.content
-        line_str = " | ".join(full_row)
+        line_str = format_table_row(full_row, col_widths)
         stdscr.addstr(row_idx, 0, line_str[:width-1])
         row_idx += 1
         
@@ -253,15 +287,18 @@ def query_table_view(stdscr, table: Table):
             row = table.query(value)
             
             if row:
-                headers = " | ".join(table.headers)
-                result_text.append(headers)
-                result_text.append("-" * len(headers))
+                # Calculate column widths for this table
+                col_widths = calculate_column_widths(table)
+                
+                headers_str = format_table_row(table.headers, col_widths)
+                result_text.append(headers_str)
+                result_text.append("-" * len(headers_str))
                 
                 r_start = row.range_start
                 r_end = row.range_end
                 range_disp = f"{r_start}" if r_start == r_end else f"{r_start}-{r_end}"
                 full_row = [range_disp] + row.content
-                result_text.append(" | ".join(full_row))
+                result_text.append(format_table_row(full_row, col_widths))
             else:
                 result_text.append("No match found.")
                 
