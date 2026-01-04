@@ -1,7 +1,7 @@
 # TTRPG Table Manager Walkthrough
 
 ## Overview
-I have implemented a command-line tool to manage and query TTRPG tables stored in CSV format. The tool allows loading tables from a file or directory, selecting a table, and querying results based on dice rolls.
+I have implemented a command-line tool to manage and query TTRPG tables stored in CSV format. The tool allows loading tables from a file or directory, selecting a table, and querying results based on dice rolls. The tool itself does NOT roll the dice, this is thought as a DM support, so after the DM has rolled the dice he can check quickly the value on the table.
 
 ## Changes
 ### Core Logic
