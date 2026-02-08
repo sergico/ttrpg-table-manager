@@ -64,3 +64,6 @@ d10 | Result | Description
 --------------------------
 2-5 | Failure | You missed.
 ```
+### Development
+Most of  the code has been developed using google antigravity + claude opus 4.5 
+
